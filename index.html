@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Raccourcisseur d’URL</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+</head>
+<body>
+  <div class="container">
+    <h1>🔗 Raccourcisseur d'URL</h1>
+
+    <form id="urlForm">
+      <input type="url" id="originalUrl" placeholder="Entrez votre URL" required />
+      <input type="text" id="customCode" placeholder="Code personnalisé (facultatif)" />
+      <button type="submit">Raccourcir</button>
+    </form>
+
+    <div id="result" style="display: none;">
+      <p><strong>URL raccourcie :</strong></p>
+      <input type="text" id="shortLink" readonly />
+      <button onclick="copyLink()">Copier</button>
+      <div id="qrcode" style="margin-top: 20px;"></div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("urlForm");
+    const resultBox = document.getElementById("result");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const originalUrl = document.getElementById("originalUrl").value;
+      const customCode = document.getElementById("customCode").value;
+
+      const res = await fetch("/shorten", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ originalUrl, customCode }),
+      });
+
+      const data = await res.json();
+      const shortUrl = `${location.origin}/${data.code}`;
+
+      document.getElementById("shortLink").value = shortUrl;
+      resultBox.style.display = "block";
+
+      document.getElementById("qrcode").innerHTML = "";
+      new QRCode(document.getElementById("qrcode"), shortUrl);
+    });
+
+    function copyLink() {
+      const input = document.getElementById("shortLink");
+      input.select();
+      document.execCommand("copy");
+      alert("Lien copié !");
+    }
+  </script>
+</body>
+</html>
